@@ -1,0 +1,3 @@
+[template]
+src = "undefined.tmpl"
+dest = "/nginx/sites-enabled/undefined"

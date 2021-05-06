@@ -1,0 +1,55 @@
+version: '2.1'
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+    image: tissca/nginx:1.18
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${CLOUD_HOME}/auth:/etc/nginx/auth:ro
+      - ${CLOUD_HOME}/dhparam:/etc/nginx/dhparam:ro
+      - ${CLOUD_HOME}/share:/share:rw
+      - ${CERTSDIR}:/etc/letsencrypt:ro
+      - ${LETSENCRYPT_WEB_ROOT}:/var/www/letsencrypt:ro
+    external_links:
+# here are the aliases
+# the format of the aliases is service_name:alias
+      - stack${TESTING_INSTANCE}_httpd_1:${TESTING_INSTANCE}
+    networks:
+
+      - testing
+      - gitea
+      - nexus
+      - ci-net
+      - code-metrics-net
+    labels:
+      systems.appollo.ams-stackname: "proxy"
+
+networks:
+
+  testing:
+    external:
+      name: $TESTING_NET
+  gitea:
+    external:
+      name: $GIT_NET
+  nexus:
+    external:
+      name: $NEXUS_NET
+  ci-net:
+    external:
+      name: $CI_NET
+  code-metrics-net:
+    external:
+      name: $CODE_METRICS_NET

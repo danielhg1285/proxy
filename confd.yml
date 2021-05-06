@@ -1,0 +1,17 @@
+version: '2.1'
+
+services:
+  confd:
+    image: appollo-systems/confd
+    container_name: confd
+    environment:
+      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN}
+      - TESTING_SERVER=${TESTING_SERVER}
+      - TESTING_INSTANCE=${TESTING_INSTANCE}
+      - NEXUS_SERVER=${NEXUS_SERVER}
+      - GIT_SERVER=${GIT_SERVER}
+      - CI_SERVER=${CI_SERVER}
+      - CODE_METRICS_SERVER=${CODE_METRICS_SERVER}
+    volumes:
+      - ./confd:/etc/confd
+      - ./nginx:/nginx

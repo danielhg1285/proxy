@@ -1,0 +1,32 @@
+# cloud instance
+upstream {{ getenv "TESTING_INSTANCE" }} {
+	# The keepalive parameter sets the maximum number of idle keepalive connections
+	# to upstream servers that are preserved in the cache of each worker process. When
+	# this number is exceeded, the least recently used connections are closed.
+	keepalive 100;
+	
+	server {{ getenv "TESTING_INSTANCE" }};
+}
+
+server {
+	server_name {{ getenv "TESTING_SERVER" }};
+	listen 443 ssl http2;
+	access_log /var/log/nginx/access.log vhost;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+	ssl_ciphers 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:!DSS';
+	ssl_prefer_server_ciphers on;
+	ssl_session_timeout 5m;
+	ssl_session_cache shared:SSL:50m;
+	ssl_session_tickets off;
+	ssl_certificate /etc/letsencrypt/live/{{ getenv "PRIMARY_DOMAIN" }}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{ getenv "PRIMARY_DOMAIN" }}/privkey.pem;
+	add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+	
+	# Remove the Connection header if the client sends it,
+	# it could be "close" to close a keepalive connection
+	proxy_set_header Connection "";
+
+	location / {
+		proxy_pass http://{{ getenv "TESTING_INSTANCE" }};
+	}
+}
